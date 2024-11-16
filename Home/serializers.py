@@ -39,3 +39,27 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data["password"])
         user.save()
         return user
+    
+
+class LoginSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=200, min_length=3)
+    password = serializers.CharField(max_length=68, min_length=6, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ["username", "password"]
+
+    def validate(self, attrs):
+        username = attrs.get("username", "")
+        password = attrs.get("password", "")
+        user = authenticate(username=username, password=password)
+        if user is None:
+            raise AuthenticationFailed("Invalid credentails")
+        if not user.is_authorized:
+            raise AuthenticationFailed("Your account has not been approved by an admin")
+
+        return {
+            "email": user.email,
+            "username": user.username,
+            "token": user.token(),
+        }
