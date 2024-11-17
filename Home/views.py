@@ -3,7 +3,8 @@ from rest_framework import generics, status
 from .serializers import *
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import AllowAny
 
 # Create your views here.
 class RegisterView(generics.GenericAPIView):
@@ -40,3 +41,13 @@ class LoginView(generics.GenericAPIView):
                 {"detail": "Your account has not been approved by an admin yet"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+class LogoutView(generics.GenericAPIView): 
+    serializer_class = LogoutSerializer
+
+    @permission_classes([AllowAny]) 
+    def post(self, request): 
+        serializer = self.serializer_class(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"detail": "Logged out successfully"}, status=status.HTTP_200_OK)
